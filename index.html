@@ -25,17 +25,13 @@
   </header>
 
   <div class="start-area">
-    <button id="btn-start" class="start-btn" aria-label="長押しで記録スタート">
-      <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
-        <circle class="ring-bg" cx="50" cy="50" r="46"/>
-        <circle class="ring-fg" cx="50" cy="50" r="46"/>
-      </svg>
+    <button id="btn-start" class="start-btn" aria-label="タップで記録スタート">
       <span class="start-inner">
         <span class="start-label"><span class="dot"></span>REC</span>
-        <span class="start-hint">長押しでスタート</span>
+        <span class="start-hint">タップでスタート</span>
       </span>
     </button>
-    <p class="start-note">レコーダーの録音ボタンと同時に押し、リングが一周するまで押し続けてください。<br>指が触れた瞬間が 0 秒になります。</p>
+    <p class="start-note">レコーダーの録音ボタンと同時にタップしてください。<br>指が触れた瞬間が 0 秒になります。</p>
   </div>
 
   <div class="history">
@@ -71,7 +67,7 @@
     <div class="tl-card">
       <div class="tl-head">
         <span>タイムライン</span>
-        <div id="tl-mode" class="seg-ctl">
+        <div class="seg-ctl" data-for="rec">
           <button data-m="all">全体</button>
           <button data-m="300000">5分</button>
           <button data-m="60000">1分</button>
@@ -81,16 +77,18 @@
     </div>
 
     <div class="list-head">
-      <span>区間 <b id="seg-count">0</b></span>
+      <span>区間 <b id="seg-count">0</b> ・ ピン <b id="pin-count">0</b></span>
       <button id="btn-undo" class="undo-btn">直前の区切りを取消</button>
     </div>
     <ul id="rec-list" class="seg-list"></ul>
   </div>
 
   <div class="mark-pad">
-    <button class="mark ok" data-type="ok"><small>ここまで</small><b>OK</b></button>
-    <button class="mark cut" data-type="cut"><b>区切る</b><small>判定は後で</small></button>
+    <button class="mark star" data-type="star"><small>ここまで</small><b>OK★</b><small>特徴的</small></button>
+    <button class="mark ok" data-type="ok"><small>ここまで</small><b>OK</b><small>ノーマル</small></button>
     <button class="mark ng" data-type="ng"><small>ここまで</small><b>NG</b></button>
+    <button class="mark cut" data-type="cut"><b>区切る</b><small>判定は後で</small></button>
+    <button class="mark pin" data-type="pin"><b>▼ ピン</b><small>コメントは後で入力</small></button>
   </div>
 </section>
 
@@ -103,13 +101,27 @@
   </header>
 
   <div class="detail-scroll">
-    <input id="d-name" class="name-input" maxlength="80" enterkeyhint="done" aria-label="記録名">
+    <label class="name-field">
+      <span class="name-label">記録名 ✎</span>
+      <input id="d-name" class="name-input" maxlength="80" enterkeyhint="done" placeholder="名前を入力（例: 川辺_ZOOM0012）">
+    </label>
     <div id="d-meta" class="meta"></div>
     <div id="d-summary" class="summary"></div>
     <div class="tl-card">
+      <div class="tl-head">
+        <span>タイムライン</span>
+        <div class="seg-ctl" data-for="detail">
+          <button data-m="all">全体</button>
+          <button data-m="300000">5分</button>
+          <button data-m="60000">1分</button>
+        </div>
+      </div>
       <div id="d-timeline" class="timeline"></div>
     </div>
-    <p class="tip">区間をタップして OK / NG やメモを編集できます</p>
+    <div class="tip-row">
+      <p class="tip">区間やピンをタップして編集できます</p>
+      <button id="btn-add-pin" class="chip-btn">＋ピン</button>
+    </div>
     <ul id="d-list" class="seg-list"></ul>
   </div>
 
@@ -119,7 +131,7 @@
   </footer>
 </section>
 
-<!-- ===== 区間編集シート ===== -->
+<!-- ===== 区間・ピンの編集シート ===== -->
 <div id="sheet" class="sheet" hidden>
   <div class="sheet-backdrop"></div>
   <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sh-title">
@@ -127,17 +139,34 @@
       <div id="sh-title" class="sheet-title"></div>
       <div id="sh-range" class="sheet-range"></div>
     </div>
-    <div id="sh-rating" class="rating-pick">
-      <button data-r="ok" class="r-ok">OK</button>
-      <button data-r="ng" class="r-ng">NG</button>
-      <button data-r="" class="r-none">未判定</button>
+
+    <div class="sh-seg">
+      <div id="sh-rating" class="rating-pick">
+        <button data-r="star" class="r-star">OK★</button>
+        <button data-r="ok" class="r-ok">OK</button>
+        <button data-r="ng" class="r-ng">NG</button>
+        <button data-r="" class="r-none">未判定</button>
+      </div>
+      <label class="field">区間メモ
+        <input id="sh-note" type="text" placeholder="例: 全体に川の音" enterkeyhint="done">
+      </label>
+      <div class="sheet-actions">
+        <button id="sh-merge">次の区間と結合</button>
+        <button class="sh-close primary">完了</button>
+      </div>
     </div>
-    <label class="field">メモ
-      <input id="sh-note" type="text" placeholder="例: 鳥の声がきれい / 車の通過音" enterkeyhint="done">
-    </label>
-    <div class="sheet-actions">
-      <button id="sh-merge">次の区間と結合</button>
-      <button id="sh-close" class="primary">完了</button>
+
+    <div class="sh-pin">
+      <label class="field">コメント
+        <input id="sh-pin-text" type="text" placeholder="例: 鳥の声 / 飛行機" enterkeyhint="done">
+      </label>
+      <label class="field">時間（分:秒）
+        <input id="sh-pin-time" type="text" enterkeyhint="done" autocomplete="off" placeholder="例: 1:23.4">
+      </label>
+      <div class="sheet-actions">
+        <button id="sh-pin-delete" class="danger">ピンを削除</button>
+        <button class="sh-close primary">完了</button>
+      </div>
     </div>
   </div>
 </div>

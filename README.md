@@ -1,65 +1,73 @@
 # Field Memo
 
-A stopwatch-style web app for taking timed notes on "good" and "noisy" sections while recording outdoor ambient sound.
-It records times only (the audio itself is recorded on a separate recorder). It makes no sound.
+屋外で環境音を録音しながら、「いい音が鳴っている区間」「ノイズで使えない区間」を時間付きでメモするストップウォッチ型のWebアプリです。
+記録するのは時間だけです（録音は別のレコーダーで行います）。アプリから音は出ません。
 
-## How to use
+公開URL: https://zizai-onkyo.github.io/field-memo/
 
-1. **Start**: press the app's REC button at the same time as the recorder's record button, and keep holding for 0.8 s until the ring completes.
-   The moment your finger **touches** the screen becomes 0 s, so it stays in sync with the recorder (a short tap won't start it).
-2. While recording, press the buttons at the bottom of the screen:
-   - **OK** … marks everything up to now as an OK section
-   - **区切る (Split)** … just ends the section here (decide OK/NG later)
-   - **NG** … marks everything up to now as an NG section
-   - Time is recorded the moment your finger touches. A different button pressed within 1.5 s of a split counts as a correction of the previous section's verdict.
-   - Tapping a badge (OK / NG / 未判定 "Undecided") in the list cycles its verdict.
-   - "直前の区切りを取消" (Undo last split) only takes effect when **tapped twice**.
-3. **Stop**: slide the red knob at the top all the way to the right (a tap or a half slide won't stop it).
-4. The edit screen opens after stopping. Tap a section to change OK / NG or add a note, or merge it with the next section.
-5. Export with "CSVをダウンロード" (Download CSV) or "共有…" (Share…: AirDrop, Save to Files, etc.). The list screen has "全件CSV" (export all).
+## 使い方
 
-### If the page reloads during recording
-The state is saved continuously, so if Safari reloads the page the app **automatically returns to the recording**.
-Elapsed time is computed from the start time, so time stays correct even if the screen goes off.
+1. **スタート**：レコーダーの録音ボタンと同時に、アプリの REC ボタンを**タップ**します。
+   指が**触れた瞬間**が 0 秒になるので、レコーダーと時間がそろいます。
+2. 記録中は画面下のボタンを押します。
+   - **OK★（特徴的）** … ここまでを「特徴的にいい」区間にする
+   - **OK（ノーマル）** … ここまでを「普通にいい」区間にする
+   - **NG** … ここまでを NG 区間にする
+   - **区切る** … 判定せずに区切るだけ（OK / NG は後で決める）
+   - **▼ピン** … その瞬間に印を付ける。コメントはリストのピンをタップして入力（録音中でも後からでも可）
+   - 時間は指が触れた瞬間に記録されます。区切った直後 1.5 秒以内に別のボタンを押すと、直前区間の判定の修正になります。
+   - リストの判定バッジをタップすると OK → OK★ → NG → 未判定 と切り替わります。
+   - 「直前の区切りを取消」は**2回タップ**で取り消します。
+3. **タイムライン**：「全体／5分／1分」で縮尺を切り替えられます。5分・1分では横にスクロールして過去の部分を見られます。
+   記録中は最新の位置に自動で追従し、過去へスクロールすると止まります（「現在へ」で戻ります）。
+   タイムラインの区間やピンをタップすると、下のリストでその項目が選ばれます。
+4. **停止**：上の赤いつまみを右端までスライドします（タップや途中までのスライドでは止まりません）。
+5. 停止すると編集画面になります。
+   - 「記録名 ✎」の欄で名前を付けられます（例: 川辺_ZOOM0012）。
+   - 区間をタップすると判定の変更・区間メモ・次の区間との結合ができます。
+   - ピンをタップするとコメントと時間を編集・削除できます。「＋ピン」で後からピンを追加できます。
+6. 「CSVをダウンロード」または「共有…」（AirDrop・ファイルに保存など）で書き出します。一覧画面の「全件CSV」でまとめて書き出せます。
 
-## CSV format
+### 記録中にページが再読み込みされたら
+状態は常に保存しているので、Safari がページを読み込み直しても**自動で記録中の画面に戻ります**。
+経過時間は開始時刻から計算しているため、画面が消えていても時間は正しいままです。
 
-UTF-8 (with BOM, so it opens in Excel without garbled text). One row per section.
+## CSV の形式
 
-| Column | Example |
+UTF-8（BOM 付き。Excel でも文字化けしません）。区間とピンを時刻順に 1 行ずつ出力します。
+時間はすべてミリ秒単位です（画面表示だけ 0.1 秒単位）。
+
+| 列 | 例 |
 |---|---|
-| 記録名 (Recording name) | 2026-10-08 14:23:05 (can be renamed on the edit screen) |
-| 区間 (Section) | 1, 2, 3 … |
-| 判定 (Verdict) | OK / NG / 未判定 (Undecided) |
-| 開始 / 終了 / 長さ (Start / End / Length) | 00:01:23.456 |
-| 開始(秒) / 終了(秒) / 長さ(秒) (Start / End / Length in seconds) | 83.456 |
-| 開始時刻 / 終了時刻 (Start / End clock time) | 2026-10-08 14:24:28 (for matching against the recorder's file timestamps) |
-| メモ (Note) | free text |
+| 記録名 | 川辺_ZOOM0012 |
+| 記録開始時刻 | 2026-10-08 14:23:05.123 |
+| 種別 | 区間 / ピン |
+| No | 区間・ピンそれぞれの番号 |
+| 判定 | OK★ / OK / NG / 未判定（ピンは空欄） |
+| 開始 / 終了 / 長さ | 00:01:23.456 |
+| 開始(秒) / 終了(秒) / 長さ(秒) | 83.456 |
+| 開始時刻 / 終了時刻 | 2026-10-08 14:24:28.579（レコーダーのファイル時刻との照合用） |
+| コメント | 区間メモ、またはピンのコメント |
 
-## Using it on an iPhone
+## iPhone で使うには
 
-It must be served over HTTPS (it won't work if you open the files directly). For example:
+Safari で公開URLを開き、**共有 → ホーム画面に追加** してください。
+- 電波のない場所（オフライン）でも開け、全画面で使えます
+- Safari は使っていないサイトのデータを消すことがありますが、ホーム画面に追加したアプリは対象外です
+- Safari で開いた場合とホーム画面から開いた場合では、データが別々に保存されます
 
-- **GitHub Pages**: put this folder in a repository and enable Pages
-- **Netlify Drop** (https://app.netlify.com/drop): just drag this folder in
+記録はその端末のブラウザ内にだけ保存されます。こまめに CSV で書き出してください。
 
-Once you open the URL in Safari, **use Share → Add to Home Screen**.
-- It then opens without signal (offline) and full screen
-- Safari may delete data from sites that haven't been used for a while, but this does not happen for apps added to the Home Screen
-- Note: data in Safari and data in the Home Screen app are stored separately
+記録中は画面が消えないようにしています（右上に「画面ON維持中」と表示）。
+「自動ロック注意」と出る場合は、設定 > 画面表示と明るさ > 自動ロック を「なし」にすると安心です。
 
-Records live only inside the browser on that device. Export them as CSV regularly.
+## 更新するとき
 
-While recording, the app tries to keep the screen on (shown as "画面ON維持中" (keeping screen on) at the top right).
-If it shows "自動ロック注意" (auto-lock warning), setting Settings > Display & Brightness > Auto-Lock to "Never" is the safe choice.
+アプリのファイルを変更したら、`sw.js` の `CACHE` の番号を上げてください（例: `fieldmemo-v3`）。
+上げないと、iPhone に古い版が残り続けることがあります。
 
-## Updating
+## ファイル構成
 
-When you change the app's files, bump the version of `CACHE` in `sw.js` (e.g. `fieldmemo-v2`).
-Otherwise phones may keep showing the old cached version.
-
-## Files
-
-- `index.html` / `style.css` / `app.js` … the app itself
-- `sw.js` … offline cache
-- `manifest.webmanifest` / `icons/` … for Add to Home Screen
+- `index.html` / `style.css` / `app.js` … アプリ本体
+- `sw.js` … オフライン用キャッシュ
+- `manifest.webmanifest` / `icons/` … ホーム画面に追加するための設定
