@@ -1,6 +1,6 @@
 // オフライン（電波のない屋外）でも開けるようにファイルをキャッシュする。
 // アプリのファイルを更新したら CACHE の番号を上げること。
-const CACHE = 'fieldmemo-v2';
+const CACHE = 'fieldmemo-v3';
 const ASSETS = [
   './',
   './index.html',

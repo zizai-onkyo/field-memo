@@ -420,7 +420,7 @@ function enterRec() {
   recTL.follow = true;
   show('rec');
   resetUndo();
-  renderRec();
+  renderRec({ toBottom: true });
   startTicker();
   acquireWake();
 }
@@ -440,7 +440,7 @@ function addMark(type, t) {
     if ((last.rating ?? null) === rating) return;
     last.rating = rating;
     saveDB();
-    renderRec();
+    renderRec({ toBottom: true });
     feedback(type);
     toast(`#${n} を「${RATING_TEXT[rk(rating)]}」に修正`, type);
     return;
@@ -449,7 +449,7 @@ function addMark(type, t) {
 
   s.segments.push({ end: at, rating, note: '' });
   saveDB();
-  renderRec();
+  renderRec({ toBottom: true });
   feedback(type);
   toast(`#${n + 1}  ${type === 'cut' ? '区切り' : RATING_TEXT[rating]}  ${fmt(at - prevEnd)}`, type);
 }
@@ -461,7 +461,7 @@ function addPin(s, t) {
   s.pins.push({ id: uid(), t: at, text: '' });
   sortPins(s);
   saveDB();
-  renderRec();
+  renderRec({ toBottom: true });
   feedback('pin');
   toast(`▼ピン ${s.pins.length}  ${fmt(at)}（リストをタップでコメント）`, 'pin', 2200);
 }
@@ -511,7 +511,7 @@ function stopRecording(t) {
   toast('記録を停止しました');
 }
 
-function renderRec() {
+function renderRec({ toBottom = false } = {}) {
   const s = activeSession();
   if (!s) return;
   $('#rec-name').textContent = s.name;
@@ -521,14 +521,18 @@ function renderRec() {
   $('#seg-count').textContent = segs.length;
   $('#pin-count').textContent = pins.length;
 
-  // 新しい順：記録中の区間 → 閉じた区間（それぞれの下にピン）
-  const rev = arr => arr.slice().reverse();
-  let h = `<li class="seg live${recSel === 'live' ? ' sel' : ''}" data-k="live"><span class="no">#${segs.length + 1}</span><span class="range">${fmt(le)} 〜</span><span class="len" id="live-len"></span><span class="badge r-live">記録中</span></li>`;
-  h += rev(pins.filter(p => p.t >= le)).map(p => pinRowHTML(p, recSel)).join('');
-  for (const row of rev(groupedRows(segs, pins.filter(p => p.t < le)))) {
-    h += segRowHTML(row.seg, recSel) + rev(row.pins).map(p => pinRowHTML(p, recSel)).join('');
+  // 上から下へ時刻順：閉じた区間（それぞれの下にピン）→ 記録中の区間
+  const list = $('#rec-list');
+  const wasAtBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
+  let h = '';
+  for (const row of groupedRows(segs, pins.filter(p => p.t < le))) {
+    h += segRowHTML(row.seg, recSel) + row.pins.map(p => pinRowHTML(p, recSel)).join('');
   }
-  $('#rec-list').innerHTML = h;
+  h += `<li class="seg live${recSel === 'live' ? ' sel' : ''}" data-k="live"><span class="no">#${segs.length + 1}</span><span class="range">${fmt(le)} 〜</span><span class="len" id="live-len"></span><span class="badge r-live">記録中</span></li>`;
+  h += pins.filter(p => p.t >= le).map(p => pinRowHTML(p, recSel)).join('');
+  list.innerHTML = h;
+  // 最新（いちばん下）を見ていた時や新しく区切った時は、いちばん下までスクロール
+  if (toBottom || wasAtBottom) list.scrollTop = list.scrollHeight;
   $('#btn-undo').disabled = !segs.length;
   lastTlDraw = 0;
   tick();

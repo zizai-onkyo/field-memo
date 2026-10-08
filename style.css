@@ -6,10 +6,10 @@
   --track: #232a32;
   --text: #edf1f5;
   --muted: #8b97a4;
-  --star: #ffd60a;
-  --star-ink: #2a2200;
-  --ok: #30d158;
-  --ok-ink: #04210d;
+  --star: #30d158;
+  --star-ink: #04210d;
+  --ok: #2f86ff;
+  --ok-ink: #ffffff;
   --ng: #ff453a;
   --ng-ink: #ffffff;
   --und: #7e8a98;
@@ -181,7 +181,7 @@ h1, h2 { margin: 0; }
   font-size: 11.5px; padding: 4px 10px; border-radius: 999px;
   border: 1px solid currentColor;
 }
-.wake[data-state="on"] { color: var(--ok); }
+.wake[data-state="on"] { color: #30d158; }
 .wake[data-state="off"] { color: #ffb340; }
 
 /* 停止スライダー */
